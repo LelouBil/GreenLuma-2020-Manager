@@ -14,7 +14,7 @@ sys.excepthook = except_hook
 #-------------------
 
 # Starts main loop
-runUpdater()
+# runUpdater()
 
 app = QApplication(sys.argv)
 

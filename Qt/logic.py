@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
 
         self.main_window.version_label.setText("v{0}".format(core.CURRENT_VERSION))
         self.main_window.no_hook_checkbox.setChecked(core.config.no_hook)
+        self.main_window.add_all_checkbox.setChecked(core.config.add_all)
         self.main_window.compatibility_mode_checkbox.setChecked(core.config.compatibility_mode)
         self.populate_list(self.main_window.games_list, games)
         self.main_window.games_list.dropEvent = self.drop_event_handler
@@ -53,6 +54,9 @@ class MainWindow(QMainWindow):
         # Shortcuts
         del_game = QShortcut(QKeySequence(Qt.Key_Delete), self.main_window.games_list)
         del_game.activated.connect(self.remove_selected)
+
+    def closeEvent(self, event):
+        save_settings()
 
     def connect_components(self):
         # Profile
@@ -202,6 +206,9 @@ class MainWindow(QMainWindow):
             config.steam_path = self.main_window.settings_steam_path.text()
             config.greenluma_path = self.main_window.settings_greenluma_path.text()
             config.check_update = self.main_window.update_checkbox.isChecked()
+            config.no_hook = self.main_window.no_hook_checkbox.isChecked()
+            config.compatibility_mode = self.main_window.compatibility_mode_checkbox.isChecked()
+            config.add_all = self.main_window.add_all_checkbox.isChecked()
 
         self.toggle_widget(self.main_window.settings_window)
 
@@ -215,9 +222,7 @@ class MainWindow(QMainWindow):
         args = ["DLLInjector.exe"]
         self.replaceConfig("FileToCreate_1", " NoQuestion.bin")
         
-        with core.get_config() as config:
-            config.no_hook = self.main_window.no_hook_checkbox.isChecked()
-            config.compatibility_mode = self.main_window.compatibility_mode_checkbox.isChecked()
+        
 
         # if : else used instead of ternary operator for better readability
         if core.config.compatibility_mode or core.config.no_hook:
@@ -262,11 +267,19 @@ class MainWindow(QMainWindow):
     def generate_app_list(self, popup = True):
         selected_profile = profile_manager.profiles[self.main_window.profile_selector.currentText()]
 
-        if len(selected_profile.games) == 0:
+        curgames = selected_profile.games
+        with core.get_config() as config:
+            config.add_all = self.main_window.add_all_checkbox.isChecked()
+            if config.add_all:
+                curgames = []
+                for p in profile_manager.profiles.values():
+                    for g in p.games:
+                        curgames.append(g)
+                        print(f"Adding {g.name}")
+        if len(curgames) == 0:
             self.show_popup("No games to generate.", lambda : self.toggle_widget(self.main_window.generic_popup,True))
             return False
-        
-        core.createFiles(selected_profile.games)
+        core.createFiles(curgames)
         if(popup):
             self.show_popup("AppList Folder Generated", lambda : self.toggle_widget(self.main_window.generic_popup, True))
 

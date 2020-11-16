@@ -113,7 +113,7 @@ class ProfileManager:
         os.remove("{}/{}.json".format(PROFILES_PATH,profile_name))
 
 class Config:
-    def __init__(self, steam_path = "", greenluma_path = "", no_hook = True, compatibility_mode = False, version = CURRENT_VERSION, last_profile = "default", check_update = True):
+    def __init__(self, steam_path = "", greenluma_path = "", no_hook = True, compatibility_mode = False, version = CURRENT_VERSION, last_profile = "default", check_update = True, add_all = False):
         self.steam_path = steam_path
         self.greenluma_path = greenluma_path
         self.no_hook = no_hook
@@ -121,6 +121,7 @@ class Config:
         self.version = version
         self.last_profile = last_profile
         self.check_update = check_update
+        self.add_all = add_all
 
     def export_config(self):
         with open("{}/config.json".format(BASE_PATH), "w") as outfile:
